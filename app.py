@@ -1,28 +1,36 @@
 #!/usr/bin/env python3
-import os
+##
+#
+# The AWS CDK stack APP does the below function
+#   - Create the VPC with two public subnet
+#   - Create the Lamda function(Python)
+#   - Create the RDS(Mysql)
+#   - Grant the permission from s3 to lamda
+#
 
 import aws_cdk as cdk
+from s3_lamda_rds.s3_lamda_rds_stack import S3LamdaRDSStack
+from s3_lamda_rds.vpc_stack import vpcStack
 
-from s3_lamda_rds.s3_lamda_rds_stack import S3LamdaRdsStack
 
+props = {
+            'vpc_name':'vpc-rds',
+            'db_name': 'newdatabase',
+            'db_master_username': 'admin',
+            'db_instance_identifier':'dbinstance',
+            'db_instance_engine':'MYSQL'
+        }
 
 app = cdk.App()
-S3LamdaRdsStack(app, "S3LamdaRdsStack",
-    # If you don't specify 'env', this stack will be environment-agnostic.
-    # Account/Region-dependent features and context lookups will not work,
-    # but a single synthesized template can be deployed anywhere.
-
-    # Uncomment the next line to specialize this stack for the AWS Account
-    # and Region that are implied by the current CLI configuration.
-
-    #env=cdk.Environment(account=os.getenv('CDK_DEFAULT_ACCOUNT'), region=os.getenv('CDK_DEFAULT_REGION')),
-
-    # Uncomment the next line if you know exactly what Account and Region you
-    # want to deploy the stack to. */
-
-    #env=cdk.Environment(account='123456789012', region='us-east-1'),
-
-    # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
-    )
+vpcStack = vpcStack(app, "vpcStack", 
+                    props, 
+                    env=cdk.Environment(account='810833458562', 
+                                        region='ap-south-1'),
+                    )
+S3LamdaRDSStack(app, "S3LamdaRDSStack",
+                vpcStack.output_props,
+                env=cdk.Environment(account='810833458562', 
+                                    region='ap-south-1'),
+                )
 
 app.synth()
